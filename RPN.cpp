@@ -1,5 +1,5 @@
 // RPN calculator
-
+//Liam Turcotte 
 #include <iostream> 
 #include <string>
 #include <stack> 
@@ -7,6 +7,11 @@
 using namespace std;
 bool is_str_digit(string);  // returns true if input parameter string is and integer (e.g., "127343")
 bool is_str_operator(string); // returns true if the input parameter is an operator character (e.g., "+", "*")
+
+class NotEnoughOperands { //exception class 
+    public: 
+        NotEnoughOperands() {} 
+}; 
 
 
 int main() 
@@ -16,42 +21,82 @@ int main()
 
     cin >> in;
 
-    while(in != "q")
-    {
-        if(is_str_digit(in)){
-            // add your code here
+    try {
+        if (!is_str_digit(in) && !is_str_operator(in)) {
+            throw in; 
         }
-        else if(is_str_operator(in))
+
+        while(in != "q")
         {
-            // add your code here 
+            if(is_str_digit(in)){
+                st.push(in); 
+            }
+            else if(is_str_operator(in))
+            {   
+                if (st.size() == 0) { //calling top() on empty stack is segfault 
+                    throw NotEnoughOperands(); 
+                }
+            
+                if (!is_str_digit(st.top())) {
+                    throw NotEnoughOperands(); 
+                }
+                
+                int value1 = stoi(st.top()); 
+                st.pop(); 
 
-            switch(in[0])
-            {
-                case '+':
-                    value3 = value2 + value1;
-                    break;
+                if (st.size() == 0) { //check size again after pop 
+                    throw NotEnoughOperands(); 
+                }
 
-                case '-':
-                    value3 = value2 - value1;
-                    break;
+                if (!is_str_digit(st.top())) {
+                    throw NotEnoughOperands(); 
+                }
+                int value2 = stoi(st.top()); 
+                st.pop(); 
+                int value3; 
 
-                case '*':
-                    value3 = value2 * value1;
-                    break;
+                switch(in[0])
+                {
+                    case '+':
+                        value3 = value2 + value1;
+                        break;
 
-                case '/':
-                    value3 = value2 / value1;
-                    break;
+                    case '-':
+                        value3 = value2 - value1;
+                        break;
+
+                    case '*':
+                        value3 = value2 * value1;
+                        break;
+
+                    case '/':
+                        value3 = value2 / value1;
+                        break;
+
+                }
+
+                st.push(to_string(value3)); 
 
             }
-
-            // add your code here
-
+    
+            cin >> in;
         }
-        cin >> in;
+
+        if (st.size() != 1) {
+            throw st.size(); 
+        }
+        cout << "The answer is : " << st.top() << endl;
     }
 
-    cout << "The answer is : " << st.top() << endl;
+    catch (NotEnoughOperands n) {
+        cout << "not enough operands." << endl; 
+    } 
+    catch (unsigned long size) {
+        cout << size << " items on the stack, can't print result." << endl; 
+    }
+    catch (string in) {
+        cout << "\"" << in << "\" is not a valid input." << endl; 
+    }
 
     return 0; 
 }
